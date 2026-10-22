@@ -1,0 +1,23 @@
+# ZooGestão — pacote instalável (PWA)
+
+## Conteúdo
+- `index.html`: aplicação com tela de liberação, gerador de licença e inicialização PWA corrigida.
+- `manifest.webmanifest`: manifesto real de instalação.
+- `sw.js`: Service Worker separado para cache offline.
+- `icons/`: ícones PNG 192×192 e 512×512.
+
+## Como testar no computador
+Na pasta deste pacote, execute `python -m http.server 8080` e abra `http://localhost:8080` no Chrome/Chromium. Para instalar como PWA em um celular, publique a pasta em um endereço HTTPS e abra-o no Chrome Android; então use o menu do navegador → Instalar aplicativo/Adicionar à tela inicial.
+
+O HTML também pode ser aberto diretamente para testar cálculos, mas instalação PWA e Service Worker exigem HTTPS ou localhost. Os dados continuam armazenados localmente no navegador/aparelho.
+
+## Tela de liberação e licenças
+Ao abrir pela primeira vez, o aplicativo bloqueia o acesso às calculadoras e mostra a tela de liberação. Ela exibe o ID do dispositivo no formato `Z00-XXXX` e permite copiá-lo. Para liberar, informe a chave de 8 caracteres recebida. A área “Área do administrador · gerar licença” solicita a senha mestra `MAIA2026` e gera a chave vinculada ao ID informado. A ativação fica salva localmente no dispositivo.
+
+**Importante:** a licença é validada localmente no HTML, sem servidor; é um bloqueio básico, não uma proteção antifraude robusta. Apagar os dados do navegador pode remover a licença local e causar novo ID. A geração de chaves nesta versão usa o algoritmo `simpleHash(MASTER_PASS + ID)`.
+
+## Correção aplicada
+A versão anterior criava um Service Worker a partir de um `Blob` URL e um manifesto temporário. Navegadores modernos normalmente não permitem registrar Service Workers a partir de Blob URLs, por isso o cache offline/PWA não funcionava de forma confiável. Agora o manifesto e o Service Worker são arquivos reais no mesmo diretório. A lógica das calculadoras e dos recursos da aplicação foi preservada. A tela de liberação foi acrescentada como camada inicial.
+
+## Limite importante
+Este pacote é uma PWA pronta para hospedagem HTTPS; não é um APK Android compilado. Para gerar APK é necessário empacotar os mesmos arquivos num projeto Android (por exemplo, WebView/Capacitor) e compilar com Android SDK. Não afirmo que exista um APK sem o compilar e testar.
