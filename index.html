@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ZooGestão — Guilherme Maia · Zootecnista</title>
+<meta name="theme-color" content="#2f6f4e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZooGestão">
+<meta name="application-name" content="ZooGestão">
+<meta name="description" content="ZooGestão — indicadores zootécnicos e financeiros offline. Números que viram decisão. Por Guilherme Maia, Zootecnista.">
+<meta name="author" content="Guilherme Maia">
+
+<!-- Injeção dinâmica do Manifest via JS -->
+<link rel="manifest" href="./manifest.webmanifest">
+
+<style>
+:root{
+  --bg:#f0f4f1; --sf:#ffffff; --ink:#1a241e; --mu:#5c6b62; --ac:#2f6f4e;
+  --ln:#d8e0da; --ac2:#3d8b62; --card-shadow:0 2px 12px rgba(47,111,78,.08);
+  --radius:16px;
+  box-sizing:border-box;
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1411; --sf:#17201b; --ink:#e8efe9; --mu:#8fa39a; --ac:#6fbf94;
+    --ln:#2a3830; --ac2:#5aad7e; --card-shadow:0 2px 12px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1411; --sf:#17201b; --ink:#e8efe9; --mu:#8fa39a; --ac:#6fbf94;
+  --ln:#2a3830; --ac2:#5aad7e; --card-shadow:0 2px 12px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+main{max-width:680px;margin:0 auto;padding:16px 16px 72px;min-height:100dvh}
+
+/* ===== Banner de Instalação (PWA) ===== */
+.install-banner {
+  background: var(--ac);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  box-shadow: var(--card-shadow);
+}
+.install-banner .info { display: flex; flex-direction: column; }
+.install-banner strong { font-size: 14px; }
+.install-banner span { font-size: 12px; opacity: 0.9; }
+.install-banner button {
+  background: #fff;
+  color: var(--ac);
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ===== Header ===== */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.topbar h1{font:600 22px/1.2 Georgia,"Times New Roman",serif;margin:0}
+.topbar .sub{font-size:13px;color:var(--mu);margin:2px 0 0}
+.btn-icon{width:40px;height:40px;border-radius:50%;border:1px solid var(--ln);background:var(--sf);color:var(--ink);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.btn-icon:active{transform:scale(.95)}
+
+/* ===== Views ===== */
+.view{display:none}
+.view.active{display:block}
+
+/* ===== Home – Search + Category cards ===== */
+.search-wrap{margin:16px 0 8px;position:relative}
+.search-wrap input{
+  width:100%;padding:12px 14px 12px 42px;border-radius:12px;
+  border:1px solid var(--ln);background:var(--sf);font:inherit;color:var(--ink);
+}
+.search-wrap input:focus{outline:2px solid var(--ac);outline-offset:1px}
+.search-wrap .sico{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;opacity:.6;pointer-events:none}
+#search-results{display:none;flex-direction:column;gap:10px;margin-top:12px}
+#search-results.visible{display:flex}
+#search-results .empty{font-size:14px;color:var(--mu);padding:12px 4px}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.cat-grid.hidden{display:none}
+.cat-card{
+  background:var(--sf);border:1px solid var(--ln);border-radius:var(--radius);
+  padding:20px 16px;cursor:pointer;box-shadow:var(--card-shadow);
+  transition:transform .15s,box-shadow .15s;text-align:center;
+}
+.cat-card:active{transform:scale(.97)}
+.cat-card .ico{font-size:32px;margin-bottom:8px;display:block}
+.cat-card .name{font:600 15px/1.25 system-ui;margin:0 0 4px}
+.cat-card .desc{font-size:12px;color:var(--mu);margin:0;line-height:1.35}
+
+/* ===== Category list ===== */
+.back-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.back-row button{border:0;background:transparent;color:var(--ac);font:600 15px system-ui;cursor:pointer;padding:6px 0;display:flex;align-items:center;gap:4px}
+.list-title{font:600 22px/1.2 Georgia,serif;margin:0 0 4px}
+.list-sub{font-size:13px;color:var(--mu);margin:0 0 18px}
+.calc-list{display:flex;flex-direction:column;gap:10px}
+.calc-item{
+  background:var(--sf);border:1px solid var(--ln);border-radius:14px;
+  padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;
+  box-shadow:var(--card-shadow);transition:transform .12s;
+}
+.calc-item:active{transform:scale(.98)}
+.calc-item .num{width:28px;height:28px;border-radius:8px;background:var(--ac);color:#fff;font:600 13px system-ui;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.calc-item .info{flex:1;min-width:0}
+.calc-item .info b{display:block;font-size:15px;margin-bottom:2px}
+.calc-item .info span{font-size:12px;color:var(--mu);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.calc-item .arrow{color:var(--mu);font-size:18px}
+
+/* ===== Calculator view ===== */
+.calc-header{margin-bottom:16px}
+.calc-header .title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.calc-header h2{font:600 22px/1.25 Georgia,serif;margin:0 0 6px;flex:1}
+.calc-header .star{
+  flex:none;width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--ln);background:var(--sf);
+  font-size:24px;cursor:pointer;line-height:1;color:var(--mu);
+  display:flex;align-items:center;justify-content:center;
+  -webkit-user-select:none;user-select:none;
+}
+.calc-header .star.off{color:var(--mu);opacity:.55}
+.calc-header .star.on{
+  color:#e6a800;opacity:1;
+  border-color:#e6a800;
+  background:color-mix(in srgb,#e6a800 14%,var(--sf));
+}
+.calc-header .star:active{transform:scale(.92)}
+#fav-section{margin-top:12px;margin-bottom:8px}
+#fav-section h3{font:600 14px system-ui;color:var(--mu);margin:0 0 10px}
+.toast{
+  position:fixed;left:50%;bottom:80px;transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;
+  font:600 13px system-ui;z-index:50;opacity:0;pointer-events:none;
+  transition:opacity .2s;white-space:nowrap;
+}
+.toast.show{opacity:1}
+.calc-header .didactic{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--mu);margin-top:10px;line-height:1.45}
+.calc-header .didactic b{color:var(--ink)}
+.calc-header .didactic .interp{margin-top:8px;padding-top:8px;border-top:1px dashed var(--ln)}
+#fav-section{margin-top:8px;margin-bottom:4px}
+#fav-section h3{font:600 14px system-ui;color:var(--mu);margin:0 0 10px;display:flex;align-items:center;gap:6px}
+#fav-list{display:flex;flex-direction:column;gap:10px}
+#fav-section.hidden{display:none}
+.copy-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.copy-row .sec.copied{background:var(--ac);color:#fff;border-color:var(--ac)}
+.star-sm{font-size:16px;margin-left:4px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:var(--radius);padding:16px;margin-top:14px;box-shadow:var(--card-shadow)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:13px;color:var(--mu)}
+label input,label select,label textarea{margin-top:4px}
+input,select,textarea{
+  width:100%;font:inherit;color:var(--ink);background:var(--sf);
+  border:1px solid var(--ln);border-radius:10px;padding:11px 12px;
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offset:1px}
+textarea{min-height:92px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.go{
+  width:100%;margin-top:14px;font:600 16px system-ui;color:#fff;
+  background:var(--ac);border:0;border-radius:12px;padding:14px;cursor:pointer;
+}
+.go:active{opacity:.9}
+.sec{
+  font:inherit;font-size:13px;color:var(--ink);background:transparent;
+  border:1px solid var(--ln);border-radius:10px;padding:8px 14px;cursor:pointer;
+}
+#o{margin-top:16px;display:grid;gap:12px}
+.r span{display:block;font-size:13px;color:var(--mu)}
+.r b{font:600 26px/1.1 Georgia,serif;color:var(--ac)}
+#x{font-size:13px;color:var(--mu);border-top:1px solid var(--ln);margin-top:16px;padding-top:12px}
+#lg{font-size:12px;color:var(--mu);margin-top:14px}
+.fz{display:inline-block;width:11px;height:11px;border-radius:50%;margin:0 5px 0 8px;vertical-align:middle}
+.fv{background:#2e9d5b}.fa{background:#e0a81b}.fr{background:#d1423a}
+label[data-e]::after{content:attr(data-e);display:block;color:#d1423a;font-size:12px;margin-top:2px}
+[aria-invalid="true"]{border-color:#d1423a}
+.msg{color:#d1423a}
+
+/* ===== History ===== */
+#hq{margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+td{border-top:1px solid var(--ln);padding:10px 4px;vertical-align:top;overflow-wrap:anywhere}
+.rc{margin-top:6px;padding:4px 10px;font-size:12px}
+
+/* ===== Footer nav ===== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;background:var(--sf);
+  border-top:1px solid var(--ln);display:flex;justify-content:center;
+  padding:8px 16px env(safe-area-inset-bottom,8px);gap:8px;z-index:20;
+}
+.bottom-nav button{
+  flex:1;max-width:160px;border:0;background:transparent;color:var(--mu);
+  font:600 12px system-ui;padding:8px 4px;cursor:pointer;border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.bottom-nav button.active{color:var(--ac);background:color-mix(in srgb,var(--ac) 12%,transparent)}
+.bottom-nav button span{font-size:20px}
+
+details{margin-top:28px;font-size:13px;color:var(--mu)}
+summary{cursor:pointer;color:var(--ink);font-weight:600}
+li{margin:8px 0}
+.mu{color:var(--mu)}
+.credit{
+  margin-top:28px;padding:16px 4px 10px;text-align:center;
+  font-size:12px;color:var(--mu);line-height:1.5;
+  border-top:1px solid var(--ln);
+}
+.credit b{color:var(--ink);font-weight:600;font-size:13px}
+.credit span{display:inline-block;margin-top:2px}
+button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+
+@media print{
+  .bottom-nav,.back-row,.row,.go,details,.topbar button,#hq,.install-banner{display:none!important}
+  body{background:#fff;color:#000}.card{border:0;box-shadow:none}
+  body.pc #hist-view{display:none} body.ph #calc-view{display:none}
+}
+@media (max-width:380px){.cat-grid{grid-template-columns:1fr}}
+
+/* ===== Tela de liberação ZooGestão ===== */
+#license-screen{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(145deg,#163b2a,#2f6f4e 62%,#4b936a);color:#17231b;overflow:auto}
+#license-screen[hidden]{display:none!important}
+.lic-card{width:min(100%,430px);background:#fff;border-radius:22px;padding:26px 22px;box-shadow:0 18px 60px #0004}
+.lic-mark{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:#e7f2eb;font-size:30px;margin-bottom:14px}
+.lic-card h1{font:700 26px/1.15 Georgia,serif;margin:0 0 6px;color:#234d36}
+.lic-sub{font-size:13px;color:#617267;margin:0 0 20px}
+.lic-card label{display:block;font-size:13px;font-weight:650;margin:13px 0 6px;color:#2c3e32}
+.lic-card input{width:100%;min-width:0;border:1px solid #cbd8cf;border-radius:11px;padding:12px;font:inherit;color:#17231b;background:#fff}
+.lic-btn{width:100%;border:0;border-radius:11px;padding:12px 14px;margin-top:12px;background:#2f6f4e;color:#fff;font:700 14px system-ui;cursor:pointer}
+.lic-btn.secondary{background:#edf4ef;color:#2f6f4e;border:1px solid #d5e4d9}
+.lic-error{min-height:20px;margin:10px 0 0;color:#b42318;font-size:12px}
+.lic-device{font:12px/1.4 ui-monospace,monospace;overflow-wrap:anywhere;background:#f3f6f4;padding:10px;border-radius:8px;user-select:all}
+.lic-admin{margin-top:18px;border-top:1px solid #e0e8e2;padding-top:13px}
+.lic-admin summary{font-size:12px;color:#627568;font-weight:600}
+.lic-small{font-size:11px;color:#718076;line-height:1.45;margin:10px 0 0}
+body.license-locked{overflow:hidden}
+
+
+</style>
+</head>
+<body class="license-locked">
+<section id="license-screen" aria-label="Liberação do ZooGestão">
+  <div class="lic-card">
+    <div class="lic-mark">🐄</div>
+    <h1>ZooGestão</h1>
+    <p class="lic-sub">Acesso protegido · Guilherme Maia, Zootecnista</p>
+    <p style="font-size:14px;margin:0">Este dispositivo precisa ser liberado para usar o aplicativo.</p>
+    <label>ID deste dispositivo</label>
+    <div class="lic-device" id="lic-device-id"></div>
+    <button class="lic-btn secondary" id="lic-copy-id" type="button">Copiar ID do dispositivo</button>
+    <label for="lic-code">Código de liberação</label>
+    <input id="lic-code" autocomplete="off" autocapitalize="characters" placeholder="Chave de 8 caracteres">
+    <button class="lic-btn" id="lic-activate" type="button">Liberar acesso</button>
+    <p class="lic-error" id="lic-error" role="status"></p>
+    <p class="lic-small">Informe o código de liberação fornecido pelo administrador. A ativação fica salva neste dispositivo.</p>
+  </div>
+</section>
+
+<main id="app-main" style="visibility:hidden">
+  <!-- ========== HOME ========== -->
+  <div id="home-view" class="view active">
+    <div class="topbar">
+      <div>
+        <h1>ZooGestão</h1>
+        <p class="sub">Números que viram decisão · offline · por Guilherme Maia</p>
+      </div>
+      <button class="btn-icon" id="th" type="button" aria-label="Alternar tema">🌓</button>
+    </div>
+
+    <!-- Banner PWA dinâmico -->
+    <div id="install-banner" class="install-banner" style="display:none">
+      <div class="info">
+        <strong>Instalar Aplicativo</strong>
+        <span>Acesse offline direto da tela inicial</span>
+      </div>
+      <button id="install-btn" type="button">Instalar</button>
+    </div>
+
+    <div class="search-wrap">
+      <span class="sico">🔍</span>
+      <input type="search" id="search" placeholder="Buscar cálculo… ex: bezerro, GMD, lotação" aria-label="Buscar cálculo" autocomplete="off">
+    </div>
+    <div id="search-results"></div>
+
+    <div id="fav-section" class="hidden">
+      <h3>⭐ Favoritos</h3>
+      <div id="fav-list"></div>
+    </div>
+
+    <div class="cat-grid" id="cat-grid"></div>
+
+    <details id="biblio">
+      <summary>Bibliografia (da mais antiga à mais nova)</summary>
+      <ol id="b"></ol>
+    </details>
+
+    <footer class="credit">
+      <b>Guilherme Maia</b> · Zootecnista<br>
+      <span>ZooGestão — zootecnia na prática, com indicadores claros</span>
+    </footer>
+  </div>
+
+  <!-- ========== LISTA DE CÁLCULOS ========== -->
+  <div id="list-view" class="view">
+    <div class="back-row">
+      <button type="button" id="back-home">← Início</button>
+    </div>
+    <h2 class="list-title" id="list-title"></h2>
+    <p class="list-sub" id="list-sub"></p>
+    <div class="calc-list" id="calc-list"></div>
+  </div>
+
+  <!-- ========== CALCULADORA ========== -->
+  <div id="calc-view" class="view">
+    <div class="back-row">
+      <button type="button" id="back-list">← Voltar</button>
+    </div>
+    <div class="calc-header">
+      <div class="title-row">
+        <h2 id="calc-title"></h2>
+        <button type="button" class="star off" id="fav-btn" aria-label="Favoritar">☆</button>
+      </div>
+      <div class="didactic" id="calc-didactic"></div>
+    </div>
+
+    <section class="card" id="c">
+      <div class="grid" id="f"></div>
+      <div class="row">
+        <button class="sec" id="ex" type="button">Usar exemplo</button>
+        <button class="sec" id="pc" type="button">Imprimir</button>
+      </div>
+      <button class="go" id="go" type="button">Calcular</button>
+      <div id="o" aria-live="polite"></div>
+      <div class="copy-row" id="copy-row" style="display:none">
+        <button class="sec" id="copy-btn" type="button">📋 Copiar resultado</button>
+      </div>
+      <div id="lg"></div>
+      <div id="x"></div>
+    </section>
+  </div>
+
+  <!-- ========== HISTÓRICO ========== -->
+  <div id="hist-view" class="view">
+    <div class="topbar">
+      <div>
+        <h1>Histórico</h1>
+        <p class="sub">Salvo apenas neste aparelho</p>
+      </div>
+      <button class="btn-icon" id="th2" type="button" aria-label="Alternar tema">🌓</button>
+    </div>
+
+    <section class="card" id="h">
+      <input type="search" id="hq" placeholder="Buscar no histórico" aria-label="Buscar no histórico">
+      <table id="ht"></table>
+      <div class="row">
+        <button class="sec" id="csv" type="button">Exportar CSV</button>
+        <button class="sec" id="prn" type="button">Imprimir</button>
+        <button class="sec" id="clr" type="button">Limpar histórico</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Bottom navigation -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button type="button" data-view="home" class="active"><span>🏠</span>Início</button>
+  <button type="button" data-view="hist"><span>📋</span>Histórico</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+const N=s=>parseFloat(String(s).trim().replace(',','.'));
+const F=(x,d)=>x.toLocaleString('pt-BR',{maximumFractionDigits:d});
+const $=i=>document.getElementById(i);
+
+/* ===== Fontes ===== */
+const R={
+cl:[0,'Definições clássicas da zootecnia, sem autoria única: GMD, conversão alimentar, rendimento de carcaça, UA de 450 kg, índices do rebanho, quadrado de Pearson e matéria seca.','definições clássicas da zootecnia'],
+sc:[0,'Schaeffer: fórmula clássica de barimetria. Forma original: P (lb) = PT² × C ÷ 300, com medidas em polegadas. A constante 10.838 é a conversão exata para cm e kg (300 × 2,54³ ÷ 0,4536); textos que arredondam usam 10.800.','Schaeffer (fórmula clássica)'],
+ch:[0,'Chaker Neto, A. Como ganhar dinheiro na pecuária: os segredos da gestão descomplicada (método Inttegra). Fórmulas implementadas a partir da descrição de cada indicador; conferir com a edição do livro.','Chaker Neto (método Inttegra)'],
+pe:[1896,'Pearson, K. (1896). Mathematical contributions to the theory of evolution. III. Phil. Trans. R. Soc. A, 187.'],
+w22:[1922,'Wright, S. (1922). Coefficients of inbreeding and relationship. American Naturalist, 56.'],
+ga:[1928,'Gaines, W. L. (1928). The energy basis of measuring milk yield in dairy cows. Univ. Illinois Agric. Exp. Sta. Bull. 308.'],
+w31:[1931,'Wright, S. (1931). Evolution in Mendelian populations. Genetics, 16.'],
+kl:[1932,'Kleiber, M. (1932). Body size and metabolism. Hilgardia, 6.'],
+lu:[1937,'Lush, J. L. (1937). Animal Breeding Plans. Iowa State College Press.'],
+lg:[1968,'Lofgreen, G. P.; Garrett, W. N. (1968). A system for expressing net energy requirements and feed values for growing and finishing beef cattle. J. Anim. Sci., 27.'],
+sj:[1990,'Sjaunja, L. O. et al. (1990). A Nordic proposal for an energy corrected milk (ECM) formula.'],
+fm:[1996,'Falconer, D. S.; Mackay, T. F. C. (1996). Introduction to Quantitative Genetics. 4. ed. Longman.'],
+n96:[1996,'NRC (1996). Nutrient Requirements of Beef Cattle. 7. ed. rev. National Academy Press.'],
+n01:[2001,'NRC (2001). Nutrient Requirements of Dairy Cattle. 7. ed. rev. National Academy Press.']
+};
+const src=k=>{const [y,t,c]=R[k];return c||(y?t.split(' (')[0]+' ('+y+')':t)};
+
+/* ===== Cálculos ===== */
+const C=[
+{g:'Desempenho',n:'Ganho médio diário (GMD)',
+ d:'Mede quantos kg o animal ganha por dia. É o principal indicador de desempenho em engorda e recria.',
+ i:'Acima de 0,600 kg/dia costuma ser bom em engorda a pasto. Abaixo de 0,400 kg/dia indica problema de manejo, sanidade ou nutrição.',
+ f:[['pi','Peso inicial','kg'],['pf','Peso final','kg'],['d','Período','dias']],
+ x:'GMD = (Pf − Pi) ÷ dias',r:['cl'],
+ c:v=>[['GMD',(v.pf-v.pi)/v.d,'kg/dia',3,[.6,.4]],['Ganho total',v.pf-v.pi,'kg']]},
+
+{g:'Desempenho',n:'Conversão alimentar',
+ d:'Quantos kg de matéria seca o animal precisa consumir para ganhar 1 kg de peso. Quanto menor, melhor.',
+ i:'Valores entre 6 e 8 kg MS/kg de ganho são comuns em confinamento. Acima de 10 indica baixa eficiência.',
+ f:[['ms','Consumo de MS total','kg'],['gp','Ganho de peso','kg']],
+ x:'CA = consumo de MS ÷ ganho de peso · EA = 1 ÷ CA',r:['cl'],
+ c:v=>[['Conversão alimentar',v.ms/v.gp,'kg MS/kg'],['Eficiência alimentar',v.gp/v.ms,'kg/kg MS',3]]},
+
+{g:'Desempenho',n:'Rendimento de carcaça',
+ d:'Percentual do peso vivo que se transforma em carcaça. Varia conforme raça, acabamento e jejum.',
+ i:'Nelore costuma ficar entre 50–54%. Animais bem acabados e com jejum adequado tendem a render mais.',
+ f:[['pv','Peso vivo em jejum','kg'],['pc','Carcaça quente','kg']],
+ x:'RC (%) = carcaça ÷ peso vivo × 100 · 1 @ = 15 kg',r:['cl'],
+ c:v=>[['Rendimento de carcaça',v.pc/v.pv*100,'%'],['Carcaça em arrobas',v.pc/15,'@']]},
+
+{g:'Desempenho',n:'Peso pelo perímetro torácico',
+ d:'Estima o peso do animal vivo usando fita. Útil quando não há balança disponível.',
+ f:[['pt','Perímetro torácico','cm'],['cc','Comprimento corporal','cm']],
+ x:'P = PT² × C ÷ 10.838 (cm e kg) · 10.838 = 300 × 2,54³ ÷ 0,4536',r:['sc'],
+ c:v=>[['Peso estimado (constante 10.838)',v.pt*v.pt*v.cc/10838,'kg',0],['Peso com a constante arredondada (10.800)',v.pt*v.pt*v.cc/10800,'kg',0]]},
+
+{g:'Desempenho',n:'Produtividade por área',
+ d:'Calcula quanto peso vivo e quantas arrobas a área está produzindo. Fundamental para avaliar o sistema.',
+ f:[['n','Animais','cab.'],['a','Área','ha'],['g','GMD','kg/dia'],['d','Período','dias'],['rc','Rendimento de carcaça','%']],
+ x:'kg PV/ha = animais × GMD × dias ÷ ha · @/ha = kg PV/ha × RC ÷ 15',r:['cl'],
+ c:v=>{const k=v.n*v.g*v.d/v.a;return[['Ganho de peso vivo',k,'kg/ha'],['Carcaça produzida (estimativa)',k*v.rc/100/15,'@/ha'],['Produção anual por área',k*v.rc/100/15*365/v.d,'@/ha/ano'],['Produção anual por animal',v.g*365*v.rc/100/15,'@/cab./ano']]}},
+
+{g:'Desempenho',n:'GMD por lote e global',
+ d:'Permite comparar o desempenho de vários lotes e obter o GMD médio ponderado do sistema.',
+ f:[['lt','Um lote por linha: animais; peso inicial; peso final; dias','','a']],
+ x:'GMD do lote = (Pf − Pi) ÷ dias · GMD global = Σ[animais × (Pf − Pi)] ÷ Σ[animais × dias]',r:['ch','cl'],
+ c:v=>{
+  const L=v.lt.split('\n').map(l=>l.split(/[;\t]+/).filter(x=>x.trim()).map(N)).filter(a=>a.length>=4&&a.every(isFinite)&&a[3]>0);
+  if(!L.length)return'Informe ao menos um lote válido, por exemplo: 50; 320; 410; 90';
+  const g=L.reduce((t,a)=>t+a[0]*(a[2]-a[1]),0)/L.reduce((t,a)=>t+a[0]*a[3],0);
+  return L.map((a,i)=>['GMD do lote '+(i+1),(a[2]-a[1])/a[3],'kg/cab./dia',3,[.6,.4]]).concat([['GMD global',g,'kg/cab./dia',3,[.6,.4]]])}},
+
+{g:'Desempenho',n:'Giro de estoque',
+ d:'Mostra quanto do peso vivo médio do rebanho foi produzido no período. Meta comum: acima de 60%.',
+ i:'Acima de 60% é considerado bom. Abaixo de 40% indica rebanho parado ou baixa produtividade.',
+ f:[['p','Peso vivo médio do rebanho','kg'],['g','GMD médio','kg/cab./dia'],['d','Dias no ano','dias']],
+ x:'Peso vivo produzido por cabeça = GMD × dias · Giro (%) = peso vivo produzido ÷ peso vivo médio × 100',r:['ch','cl'],
+ c:v=>[['Peso vivo produzido por cabeça',v.g*v.d,'kg/cab.'],['Giro de estoque',v.g*v.d/v.p*100,'% do peso vivo',1,[60,40]]]},
+
+{g:'Desempenho',n:'Desembolso por 100 g de ganho',
+ d:'Quanto custa cada 100 gramas de ganho de peso. Permite comparar eficiência de custos entre lotes.',
+ f:[['c','Desembolso total no período','R$'],['n','Animais médios','cab.'],['d','Período','dias'],['g','GMD','kg/cab./dia']],
+ x:'Desembolso/cab./dia = desembolso ÷ (animais × dias) · R$ por 100 g = desembolso/cab./dia ÷ (GMD × 10)',r:['ch','cl'],
+ c:v=>{const c=v.c/(v.n*v.d);return[['Desembolso por cabeça/dia',c,'R$/cab./dia'],['Desembolso por 100 g de ganho',c/(v.g*10),'R$/100 g']]}},
+
+/* Nutrição */
+{g:'Nutrição',n:'Peso metabólico e mantença',
+ d:'O peso metabólico (PV^0,75) é a base para calcular as exigências de energia de mantença.',
+ f:[['pv','Peso vivo','kg']],
+ x:'PM = PV^0,75 · ENm corte = 0,077 × PM · ENL mantença leite = 0,080 × PM',r:['kl','lg','n96','n01'],
+ c:v=>{const m=Math.pow(v.pv,.75);return[['Peso metabólico',m,'kg^0,75'],['ENm (corte)',.077*m,'Mcal/dia'],['ENL de mantença (leite)',.08*m,'Mcal/dia']]}},
+
+{g:'Nutrição',n:'CMS de vaca em lactação',
+ d:'Estima o consumo de matéria seca de vacas em lactação segundo o NRC 2001.',
+ f:[['pv','Peso vivo','kg'],['l','Leite','kg/dia'],['g','Gordura do leite','%'],['s','Semana de lactação','sem.']],
+ x:'CMS = (0,372 × LCG4% + 0,0968 × PV^0,75) × (1 − e^(−0,192 × (semana + 3,67)))',r:['ga','n01'],
+ c:v=>{const l=.4*v.l+.15*v.l*v.g,m=(.372*l+.0968*Math.pow(v.pv,.75))*(1-Math.exp(-.192*(v.s+3.67)));return[['Leite corrigido a 4%',l,'kg/dia'],['CMS estimado',m,'kg MS/dia'],['CMS em % do peso vivo',m/v.pv*100,'%']]}},
+
+{g:'Nutrição',n:'Consumo e matéria seca',
+ d:'Converte consumo de matéria seca em % do peso vivo e em matéria natural.',
+ f:[['pv','Peso vivo','kg'],['ms','Consumo de MS','kg/dia'],['pm','MS do alimento','%']],
+ x:'CMS (% PV) = MS ÷ PV × 100 · MN = MS ÷ (%MS ÷ 100)',r:['cl'],
+ c:v=>[['CMS em % do peso vivo',v.ms/v.pv*100,'%'],['Oferta em matéria natural',v.ms/(v.pm/100),'kg/dia']]},
+
+{g:'Nutrição',n:'Quadrado de Pearson',
+ d:'Calcula a proporção de dois alimentos para atingir um teor desejado (ex.: proteína da ração).',
+ f:[['t','Nível desejado na mistura','%'],['a','Ingrediente A','%'],['b','Ingrediente B','%']],
+ x:'Partes de A = |B − meta| · Partes de B = |A − meta| · a meta fica entre A e B',r:['cl'],
+ c:v=>{if((v.t-v.a)*(v.t-v.b)>=0)return'O nível desejado precisa ficar entre os dois ingredientes.';const s=Math.abs(v.a-v.b);return[['Ingrediente A',Math.abs(v.b-v.t)/s*100,'% da mistura'],['Ingrediente B',Math.abs(v.a-v.t)/s*100,'% da mistura']]}},
+
+{g:'Leite',n:'Leite corrigido',
+ d:'Padroniza a produção de leite para 4% de gordura ou para energia, permitindo comparações justas.',
+ f:[['l','Produção de leite','kg/dia'],['g','Gordura','%'],['p','Proteína','%']],
+ x:'LCG 4% = 0,4 × leite + 15 × kg de gordura · LCE = leite × (383 × %G + 242 × %P + 783,2) ÷ 3140',r:['ga','sj'],
+ c:v=>[['Leite corrigido a 4% de gordura',.4*v.l+.15*v.l*v.g,'kg/dia'],['Leite corrigido para energia',v.l*(383*v.g+242*v.p+783.2)/3140,'kg/dia']]},
+
+/* Rebanho */
+{g:'Rebanho',n:'Índices do rebanho',
+ d:'Natalidade, mortalidade e desfrute são os três índices básicos de desempenho do rebanho.',
+ f:[['m','Matrizes','cab.'],['n','Nascimentos','cab.'],['t','Rebanho total','cab.'],['o','Mortes','cab.'],['v','Vendas e abates','cab.']],
+ x:'Natalidade = nascimentos ÷ matrizes · Mortalidade = mortes ÷ rebanho · Desfrute = saídas ÷ rebanho (× 100)',r:['cl'],
+ c:v=>[['Natalidade',v.n/v.m*100,'%'],['Mortalidade',v.o/v.t*100,'%'],['Desfrute',v.v/v.t*100,'%']]},
+
+{g:'Rebanho',n:'Lotação (UA)',
+ d:'Unidade Animal (UA) = 450 kg. A taxa de lotação mostra quantas UA cabem por hectare.',
+ i:'Lotação acima de 1,5 UA/ha em pasto bem manejado é boa. Acima de 2 UA/ha exige atenção à oferta de forragem.',
+ f:[['n','Número de animais','cab.'],['p','Peso médio','kg'],['a','Área','ha']],
+ x:'UA = animais × peso médio ÷ 450 · lotação = UA ÷ ha',r:['cl'],
+ c:v=>{const u=v.n*v.p/450;return[['Unidades animais',u,'UA'],['Taxa de lotação',u/v.a,'UA/ha',2,[1.5,1]],['Animais por hectare',v.n/v.a,'cab./ha']]}},
+
+{g:'Rebanho',n:'Produção de bezerros',
+ d:'Avalia a eficiência da cria: taxa de desmame, kg de bezerro por vaca e por hectare.',
+ i:'Taxa de desmame ≥ 80% e ≥ 180 kg de bezerro por vaca exposta são metas boas. Relação de desmame ≥ 45% indica bezerro pesado em relação à vaca.',
+ f:[['m','Vacas expostas','cab.'],['b','Bezerros desmamados','cab.'],['pb','Peso médio do bezerro ao desmame','kg'],['pv','Peso médio da vaca','kg'],['a','Área','ha']],
+ x:'Desmame (%) = desmamados ÷ vacas expostas × 100 · kg por vaca = desmamados × peso ÷ vacas',r:['ch'],
+ c:v=>[['Taxa de desmame',v.b/v.m*100,'%',1,[80,65]],['Bezerro desmamado por vaca exposta',v.b*v.pb/v.m,'kg/vaca',1,[180,120]],['Bezerro desmamado por hectare',v.b*v.pb/v.a,'kg/ha',1],['Relação de desmame',v.pb/v.pv*100,'%',1,[45,35]]]},
+
+{g:'Rebanho',n:'Desfrute em arrobas',
+ d:'Percentual das arrobas do estoque que foram produzidas no ano. Meta: acima de 60%.',
+ i:'Acima de 60% é bom. Abaixo de 40% significa que o rebanho está “parado” em termos de produção de arrobas.',
+ f:[['ap','Arrobas produzidas no ano','@'],['es','Estoque médio do rebanho','@']],
+ x:'Desfrute em arrobas (%) = arrobas produzidas ÷ estoque médio em @ × 100',r:['ch'],
+ c:v=>[['Desfrute em arrobas',v.ap/v.es*100,'%',1,[60,40]]]},
+
+{g:'Rebanho',n:'Vendas e abates por hectare',
+ d:'Mede a intensidade de saída do sistema. Metas diferentes para recria/engorda e cria.',
+ f:[['sis','Sistema','','|Recria ou engorda|Cria ou ciclo completo'],['cb','Cabeças vendidas ou abatidas no ano','cab.'],['ar','Arrobas vendidas ou abatidas no ano','@'],['a','Área','ha']],
+ x:'Vendas por ha = cabeças ÷ área · @ por ha = arrobas ÷ área',r:['ch'],
+ c:v=>[['Vendas e abates por hectare',v.cb/v.a,'cab./ha/ano',2,v.sis?[1,.7]:[2,1.4]],['Arrobas vendidas por hectare',v.ar/v.a,'@/ha/ano']]},
+
+{g:'Rebanho',n:'Arrobas por hectare pelo estoque',
+ d:'Calcula a produção real de arrobas a partir do inventário (estoque inicial, final, entradas e saídas).',
+ f:[['fi','@ finais (estoque)','@'],['ii','@ iniciais (estoque)','@'],['en','@ de entradas (compras)','@'],['sa','@ de saídas (vendas e abates)','@'],['a','Área','ha']],
+ x:'@ produzidas = @ finais − @ iniciais − @ entradas + @ saídas · @/ha/ano = @ produzidas ÷ área',r:['ch'],
+ c:v=>{const p=v.fi-v.ii-v.en+v.sa;return[['Arrobas produzidas',p,'@/ano'],['Produção por hectare',p/v.a,'@/ha/ano',2,[12,6]]]}},
+
+/* Financeiro */
+{g:'Financeiro',n:'Resultado da operação',
+ d:'Lucro operacional simples: faturamento menos custos. A margem mostra a saúde do negócio.',
+ i:'Margem acima de 30% é excelente. Entre 15% e 30% é aceitável. Abaixo de 15% o negócio está apertado.',
+ f:[['fb','Faturamento bruto','R$'],['cu','Custos operacionais totais','R$']],
+ x:'Resultado = faturamento bruto − custos operacionais · Margem = resultado ÷ faturamento × 100',r:['ch'],
+ c:v=>[['Resultado da operação',v.fb-v.cu,'R$'],['Margem sobre a venda',(v.fb-v.cu)/v.fb*100,'%',1,[30,15]]]},
+
+{g:'Financeiro',n:'Desembolso por cabeça e por arroba',
+ d:'Custo real por animal e por arroba produzida. Permite saber se a margem está adequada.',
+ f:[['c','Desembolso total no período','R$'],['n','Animais médios','cab.'],['m','Período','meses'],['a','Arrobas produzidas','@'],['pa','Preço de venda da @','R$']],
+ x:'R$/cab./mês = desembolso ÷ (animais × meses) · R$/@ = desembolso ÷ @ produzidas',r:['ch'],
+ c:v=>{const ca=v.c/v.a;return[['Desembolso por cabeça/mês',v.c/(v.n*v.m),'R$/cab./mês'],['Desembolso por arroba produzida',ca,'R$/@'],['Margem por arroba',v.pa-ca,'R$/@'],['Margem sobre o preço da @',(v.pa-ca)/v.pa*100,'%',1,[30,15]]]}},
+
+{g:'Financeiro',n:'Custo real do bezerro',
+ d:'Quanto realmente custa produzir um bezerro desmamado, considerando a eficiência reprodutiva.',
+ f:[['cm','Custo anual de manutenção da matriz','R$'],['pr','Taxa de prenhez','%'],['de','Taxa de desmame','%'],['ie','Intervalo entre partos','meses'],['pd','Peso ao desmame','kg']],
+ x:'Bezerros/matriz/ano = prenhez × desmame × (12 ÷ intervalo) · Custo = custo anual ÷ bezerros',r:['ch'],
+ c:v=>{const b=v.pr/100*v.de/100*12/v.ie,c=v.cm/b;return[['Bezerros desmamados por matriz/ano',b,'bezerros',3],['Custo real do bezerro',c,'R$/bezerro'],['Custo por kg desmamado',c/v.pd,'R$/kg']]}},
+
+{g:'Financeiro',n:'Custo da arroba produzida',
+ d:'Custo total dividido pelas arrobas produzidas. A relação @ gasta / @ produzida deve ficar entre 0,60 e 0,65.',
+ i:'Meta Inttegra: gastar entre 0,60 e 0,65 arroba para produzir 1 arroba. Acima de 0,70 a margem fica apertada.',
+ f:[['c','Custeio total no período','R$'],['a','Arrobas produzidas','@'],['pa','Preço de venda da @','R$']],
+ x:'Custo da @ = custeio ÷ @ produzidas · @ gastas por @ produzida = custo ÷ preço',r:['ch'],
+ c:v=>{const k=v.c/v.a;return[['Custo da arroba produzida',k,'R$/@'],['Arrobas gastas por arroba produzida',k/v.pa,'@',2,[.6,.65]]]}},
+
+{g:'Financeiro',n:'Desembolso máximo permitido (regra dos 7%)',
+ d:'Regra prática de Chaker: o desembolso mensal por cabeça não deve ultrapassar 7% do preço da arroba × GMD.',
+ i:'Se o desembolso atual estiver acima do máximo, o GMD não está pagando o custo. Reduza desembolso ou aumente desempenho.',
+ f:[['pa','Preço da @','R$'],['g','GMD','kg/cab./dia'],['da','Desembolso atual por cabeça/mês','R$']],
+ x:'Máximo (R$/cab./mês) = preço da @ × 0,07 × GMD em centenas de gramas',r:['ch'],
+ c:v=>{const m=v.pa*.07*v.g*10;return[['Desembolso máximo permitido',m,'R$/cab./mês'],['Folga sobre o desembolso atual',m-v.da,'R$/cab./mês'],['Desembolso atual sobre o máximo',v.da/m*100,'%',0,[100,115]]]}},
+
+{g:'Financeiro',n:'Resultado por hectare',
+ d:'Lucro, faturamento e custo diluídos por hectare. Facilita comparar diferentes propriedades.',
+ f:[['fb','Faturamento bruto no ano','R$'],['cu','Custos operacionais no ano','R$'],['a','Área','ha']],
+ x:'Resultado por hectare = (faturamento − custos) ÷ área',r:['ch'],
+ c:v=>[['Resultado por hectare',(v.fb-v.cu)/v.a,'R$/ha/ano'],['Faturamento por hectare',v.fb/v.a,'R$/ha/ano'],['Custo por hectare',v.cu/v.a,'R$/ha/ano']]},
+
+/* Retorno */
+{g:'Retorno',n:'Rentabilidade sobre os ativos',
+ d:'Quanto o resultado da operação representa sobre o valor da terra, do rebanho e do capital total.',
+ f:[['r','Resultado da operação no ano','R$'],['t','Valor da terra','R$'],['b','Valor do rebanho','R$']],
+ x:'% sobre a terra = resultado ÷ valor da terra × 100 · % sobre o capital = resultado ÷ (terra + rebanho) × 100',r:['ch'],
+ c:v=>[['Resultado sobre o valor da terra',v.r/v.t*100,'% ao ano',2,[6,3]],['Resultado sobre o valor do rebanho',v.r/v.b*100,'% ao ano',2,[20,10]],['Resultado sobre o capital total',v.r/(v.t+v.b)*100,'% ao ano',2,[8,4]]]},
+
+{g:'Retorno',n:'Efeito de mercado e de gestão',
+ d:'Separa o resultado que veio da gestão (operação) do que veio da valorização de terra e preço da arroba.',
+ f:[['r','Resultado da operação no ano','R$'],['t0','Valor da terra no início','R$'],['t1','Valor da terra no fim','R$'],['p0','Preço da @ no início','R$'],['p1','Preço da @ no fim','R$'],['e','Estoque médio do rebanho','@']],
+ x:'Efeito de gestão = resultado · Efeito de mercado = (terra final − inicial) + (preço final − inicial) × estoque',r:['ch'],
+ c:v=>{const m=v.t1-v.t0+(v.p1-v.p0)*v.e,t=v.r+m;return[['Efeito de gestão',v.r,'R$'],['Efeito de mercado',m,'R$'],['Resultado total',t,'R$'],['Parcela da gestão no resultado',v.r/t*100,'%',1]]}},
+
+{g:'Retorno',n:'Payback e margem de segurança',
+ d:'Tempo de retorno do investimento e distância do ponto de equilíbrio. Quanto maior a margem de segurança, melhor.',
+ f:[['i','Investimento','R$'],['fb','Faturamento anual','R$'],['cf','Custos fixos anuais','R$'],['cv','Custos variáveis anuais','R$']],
+ x:'Payback = investimento ÷ resultado anual · Equilíbrio = custos fixos ÷ (1 − CV/faturamento)',r:['ch'],
+ c:v=>{const r=v.fb-v.cf-v.cv,pe=v.cf/(1-v.cv/v.fb);return[['Resultado anual',r,'R$'],['Payback simples',r>0?v.i/r:NaN,'anos',1,[5,10]],['Ponto de equilíbrio',pe,'R$ por ano'],['Margem de segurança',(v.fb-pe)/v.fb*100,'%',1,[30,15]]]}},
+
+/* Metas */
+{g:'Metas',n:'Simulador de metas',
+ d:'Mostra quanto de GMD ou de lotação você precisa atingir para alcançar o lucro desejado por hectare.',
+ i:'Se o GMD ou a lotação necessários estiverem muito acima do atual (vermelho), a meta de lucro pode ser irrealista no curto prazo. Ajuste preço, custo ou expectativa.',
+ f:[['l','Lucro desejado','R$/ha/ano'],['pa','Preço da @','R$'],['co','Custo operacional','R$/ha/ano'],['rc','Rendimento de carcaça','%'],['pm','Peso médio dos animais','kg'],['g0','GMD atual','kg/cab./dia'],['u0','Lotação atual','UA/ha']],
+ x:'@/ha necessárias = (lucro + custo) ÷ preço · kg PV/ha = @/ha × 15 ÷ RC',r:['ch','cl'],
+ c:v=>{
+  const at=(v.l+v.co)/v.pa,k=at*15/(v.rc/100),cab=v.u0*450/v.pm,ga=k/(cab*365),lo=k/(v.g0*365)*v.pm/450;
+  return[['Arrobas necessárias',at,'@/ha/ano'],['GMD necessário, com a lotação atual',ga,'kg/cab./dia',3,[v.g0,v.g0*1.3],'verde: a meta já é atingida com o GMD atual · vermelho: exige mais de 30% acima do atual'],['Lotação necessária, com o GMD atual',lo,'UA/ha',2,[v.u0,v.u0*1.3],'verde: a meta já é atingida com a lotação atual · vermelho: exige mais de 30% acima da atual'],['Produção atual',cab*v.g0*365*v.rc/100/15,'@/ha/ano']]}},
+
+/* Genética */
+{g:'Genética',n:'Resposta à seleção',
+ d:'Estima o ganho genético esperado por geração e por ano a partir da herdabilidade e do diferencial de seleção.',
+ f:[['h','Herdabilidade (h²)','0 a 1'],['s','Média dos selecionados',''],['m','Média da população',''],['l','Intervalo de gerações','anos']],
+ x:'S = média dos selecionados − média da população · R = h² × S · ΔG/ano = R ÷ L',r:['lu'],
+ c:v=>{const S=v.s-v.m,Rr=v.h*S;return[['Diferencial de seleção (S)',S,''],['Resposta por geração (R)',Rr,''],['Ganho genético por ano',Rr/v.l,'']]}},
+
+{g:'Genética',n:'Endogamia de Wright',
+ d:'Calcula o coeficiente de endogamia (F) a partir do parentesco com o ancestral comum.',
+ f:[['a','Gerações do pai até o ancestral comum','n₁'],['b','Gerações da mãe até o ancestral comum','n₂'],['fa','Endogamia do ancestral comum','0 a 1']],
+ x:'F = (½)^(n₁ + n₂ + 1) × (1 + FA)',r:['w22'],
+ c:v=>[['Coeficiente de endogamia (F)',Math.pow(.5,v.a+v.b+1)*(1+v.fa)*100,'%',3]]},
+
+{g:'Genética',n:'Tamanho efetivo da população',
+ d:'Ne indica quantos animais “efetivos” estão contribuindo geneticamente. Quanto maior, menor a endogamia.',
+ f:[['m','Machos reprodutores','cab.'],['f','Fêmeas reprodutoras','cab.']],
+ x:'Ne = 4 × Nm × Nf ÷ (Nm + Nf) · ΔF = 1 ÷ (2 × Ne)',r:['w31'],
+ c:v=>{const e=4*v.m*v.f/(v.m+v.f);return[['Tamanho efetivo (Ne)',e,'animais'],['Aumento de endogamia por geração',100/(2*e),'%']]}},
+
+{g:'Genética',n:'Heterose',
+ d:'Vantagem do cruzamento: o quanto o F1 supera a média das raças parentais.',
+ f:[['f1','Média do F1',''],['a','Média da raça A',''],['b','Média da raça B','']],
+ x:'Heterose (%) = (F1 − média dos pais) ÷ média dos pais × 100',r:['fm'],
+ c:v=>{const p=(v.a+v.b)/2;return[['Heterose',(v.f1-p)/p*100,'%'],['Média dos pais',p,'']]}},
+
+{g:'Estatística',n:'Média, desvio e CV',
+ d:'Estatística básica para avaliar a uniformidade de um lote (peso, GMD, etc.). CV alto indica desuniformidade.',
+ f:[['x','Valores, separados por espaço ou ponto e vírgula','','t']],
+ x:'CV (%) = desvio padrão amostral ÷ média × 100',r:['pe'],
+ c:v=>{const a=v.x.split(/[;\s]+/).map(N).filter(isFinite);if(a.length<2)return'Informe ao menos dois valores.';const m=a.reduce((s,y)=>s+y,0)/a.length,d=Math.sqrt(a.reduce((s,y)=>s+(y-m)**2,0)/(a.length-1));return[['Observações',a.length,'',0],['Média',m,''],['Desvio padrão',d,''],['Coeficiente de variação',d/m*100,'%']]}}
+];
+
+/* ===== Categorias ===== */
+const CATS=[
+  {id:'desempenho', name:'Desempenho', ico:'📈', desc:'GMD, conversão, carcaça e produtividade', groups:['Desempenho']},
+  {id:'rebanho',    name:'Rebanho',     ico:'🐄', desc:'Índices, lotação, bezerros e desfrute', groups:['Rebanho']},
+  {id:'nutricao',   name:'Nutrição & Leite', ico:'🌾', desc:'Consumo, matéria seca e leite corrigido', groups:['Nutrição','Leite']},
+  {id:'financeiro', name:'Financeiro',  ico:'💰', desc:'Custos, margens e desembolso', groups:['Financeiro']},
+  {id:'retorno',    name:'Retorno & Metas', ico:'🎯', desc:'Rentabilidade, payback e simulador', groups:['Retorno','Metas']},
+  {id:'genetica',   name:'Genética',    ico:'🧬', desc:'Seleção, endogamia e estatística', groups:['Genética','Estatística']}
+];
+
+/* ===== Farol ===== */
+const farol=(x,[g,r])=>{const up=g>r,ok=up?x>=g:x<=g,ruim=up?x<r:x>r;return ok?['fv','Bom']:ruim?['fr','Crítico']:['fa','Atenção']};
+let LEG=[];
+const legenda=(l,[g,r],w)=>l+': '+(w||(g>r?'verde ≥ '+F(g,2)+' · vermelho < '+F(r,2):'verde ≤ '+F(g,2)+' · vermelho > '+F(r,2)));
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const row=([l,x,u,d=2,z,w])=>{
+  const ok=isFinite(x),m=u.slice(0,2)==='R$',f=ok&&z?farol(x,z):0;
+  if(f)LEG.push(legenda(l,z,w));
+  return'<div class="r"><span>'+l+'</span><b>'+(m?'R$ ':'')+(ok?F(x,d):'—')+'</b> '+(m?u.slice(2):u)+(f?'<span class="fz '+f[0]+'"></span>'+f[1]:'')+'</div>';
+};
+
+/* ===== Exemplos ===== */
+const EX={
+'Ganho médio diário (GMD)':[320,410,90],'Conversão alimentar':[1800,250],'Rendimento de carcaça':[520,270],
+'Peso pelo perímetro torácico':[180,150],'Produtividade por área':[100,50,0.7,180,52],'Peso metabólico e mantença':[450],
+'CMS de vaca em lactação':[600,30,3.7,10],'Consumo e matéria seca':[450,10,35],'Quadrado de Pearson':[20,45,9],
+'Leite corrigido':[28,3.8,3.2],'Índices do rebanho':[200,160,500,8,140],'Lotação (UA)':[120,400,50],
+'Resposta à seleção':[0.35,520,480,5],'Endogamia de Wright':[2,2,0],'Tamanho efetivo da população':[5,100],
+'Heterose':[480,440,420],'Média, desvio e CV':['12; 14; 13,5; 15; 11'],
+'GMD por lote e global':['50; 320; 410; 90\n30; 280; 350; 90'],'Giro de estoque':[330,0.7,365],
+'Desembolso por 100 g de ganho':[18000,100,90,0.7],'Resultado da operação':[450000,330000],
+'Desembolso por cabeça e por arroba':[60000,100,3,300,300],'Custo real do bezerro':[1500,85,92,13,200],
+'Rentabilidade sobre os ativos':[250000,5000000,1500000],'Efeito de mercado e de gestão':[250000,5000000,5400000,280,310,4000],
+'Payback e margem de segurança':[800000,1200000,300000,500000],'Simulador de metas':[1200,300,1500,52,420,0.6,1.5],
+'Arrobas por hectare pelo estoque':[9000,8000,2500,3500,500],'Custo da arroba produzida':[360000,2000,300],
+'Vendas e abates por hectare':[0,320,2400,160],'Desfrute em arrobas':[2400,6000],'Produção de bezerros':[200,170,210,420,400],
+'Desembolso máximo permitido (regra dos 7%)':[300,0.5,95],'Resultado por hectare':[900000,640000,500]
+};
+
+/* ===== Validação ===== */
+const ZERO=/^(Mortes|Vendas|Nascimentos|Endogamia|Custo|Semana|Lucro|Desembolso atual|@ |Cabeças|Arrobas vendidas|Bezerros)/;
+const FAIXAS=[[/GMD/,0,3],[/^(Gordura|Proteína)/,.5,12],[/^Peso/,1,1500],[/^Rendimento/,30,75],[/^Semana/,1,60],[/^Intervalo entre partos/,8,36],[/^(Perímetro|Comprimento)/,50,300]];
+const INT=['cab.','dias','sem.','n₁','n₂'];
+const texto=t=>t==='t'||t==='a';
+const lista=t=>t&&t[0]==='|';
+function erroCampo([,l,u,t],txt){
+  if(lista(t))return'';
+  if(!txt.trim())return'Preencha este campo.';
+  if(texto(t))return'';
+  const x=N(txt);
+  if(!isFinite(x))return'Digite um número, por exemplo 12,5.';
+  if(x<0&&u!==''&&!/^(Resultado|Margem)/.test(l))return'Use um valor positivo.';
+  if(x===0&&u!==''&&!ZERO.test(l))return'O valor precisa ser maior que zero.';
+  if(u==='%'&&x>100)return'Use uma porcentagem de 0 a 100.';
+  if(u==='0 a 1'&&(x<0||x>1))return'Use um valor de 0 a 1.';
+  const g=FAIXAS.find(a=>a[0].test(l));
+  if(g&&(x<g[1]||x>g[2]))return'Fora da faixa usual ('+F(g[1],1)+' a '+F(g[2],1)+').';
+  return'';
+}
+function marca(i){
+  const f=cur.f.find(f=>f[0]===i.dataset.k),m=erroCampo(f,i.value),lb=i.closest('label');
+  if(m)lb.dataset.e=m;else delete lb.dataset.e;
+  i.setAttribute('aria-invalid',m?'true':'false');
+  return m;
+}
+
+/* ===== Persistência ===== */
+const LS={get(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const hist=()=>LS.get('zoo.h',[]);
+const ler=()=>{const d={};document.querySelectorAll('[data-k]').forEach(i=>d[i.dataset.k]=i.value);return d};
+const savein=()=>LS.set('zoo.i.'+cur.n,ler());
+function load(){
+  const d=LS.get('zoo.i.'+cur.n,{});
+  document.querySelectorAll('[data-k]').forEach(i=>{if(d[i.dataset.k]!==undefined)i.value=d[i.dataset.k]});
+  $('o').innerHTML='';
+}
+
+/* ===== Histórico ===== */
+const rotulo=(f,v)=>lista(f[3])?f[3].slice(1).split('|')[v[f[0]]]:String(v[f[0]]).replace(/\n/g,' / ');
+function log(v,r){
+  const h=hist();
+  h.unshift({t:new Date().toLocaleString('pt-BR'),n:cur.n,d:ler(),
+    i:cur.f.map(f=>f[1]+': '+rotulo(f,v)).join(' | '),
+    o:r.map(a=>a[0]+': '+(isFinite(a[1])?F(a[1],a[3]===undefined?2:a[3])+' '+a[2]:'—')).join(' | ')});
+  LS.set('zoo.h',h.slice(0,200));drawH();
+}
+function drawH(){
+  const q=$('hq').value.trim().toLowerCase(),h=hist();
+  const ls=h.map((e,i)=>[e,i]).filter(([e])=>!q||(e.t+' '+e.n+' '+e.i+' '+e.o).toLowerCase().includes(q));
+  $('ht').innerHTML=ls.length?ls.map(([e,i])=>'<tr><td>'+esc(e.t)+'<br><b>'+esc(e.n)+'</b>'+(e.d?'<br><button class="sec rc" data-r="'+i+'" type="button">Recalcular</button>':'')+'</td><td>'+esc(e.i)+'<br><b>'+esc(e.o)+'</b></td></tr>').join(''):'<tr><td class="mu">'+(h.length?'Nada encontrado.':'Nenhum cálculo salvo ainda.')+'</td></tr>';
+}
+function recalc(i){
+  const e=hist()[i];if(!e)return;
+  const k=C.findIndex(c=>c.n===e.n);if(k<0)return;
+  openCalc(k);
+  document.querySelectorAll('[data-k]').forEach(el=>{if(e.d[el.dataset.k]!==undefined)el.value=e.d[el.dataset.k]});
+  savein();run(false);window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ===== Exportação ===== */
+async function saveFile(nome,dados){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([dados],{type:'text/csv'}));a.download=nome;a.click();
+}
+function csv(){const q=c=>'"'+String(c).replace(/"/g,'""')+'"';return'\ufeffData;Cálculo;Entradas;Resultados\n'+hist().map(e=>[e.t,e.n,e.i,e.o].map(q).join(';')).join('\n')}
+function imprimir(cl){document.body.classList.add(cl);print()}
+onafterprint=()=>document.body.classList.remove('pc','ph');
+
+/* ===== Navegação ===== */
+let cur=null, currentCat=null;
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $(id+'-view').classList.add('active');
+  document.querySelectorAll('.bottom-nav button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.view===id || (id!=='home'&&id!=='hist'&&b.dataset.view==='home'));
+  });
+  if(id==='hist') drawH();
+  if(id==='home') renderFavs();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function openCat(catId){
+  currentCat=CATS.find(c=>c.id===catId);
+  if(!currentCat)return;
+  $('list-title').textContent=currentCat.ico+' '+currentCat.name;
+  $('list-sub').textContent=currentCat.desc;
+  const items=C.map((c,i)=>({c,i})).filter(({c})=>currentCat.groups.includes(c.g));
+  $('calc-list').innerHTML=items.map(({c,i},idx)=>`
+    <div class="calc-item" data-idx="${i}">
+      <div class="num">${idx+1}</div>
+      <div class="info"><b>${esc(c.n)}</b><span>${esc(c.d||'')}</span></div>
+      <div class="arrow">›</div>
+    </div>`).join('');
+  showView('list');
+}
+
+/* Favoritos */
+let FAVS=(function(){
+  try{const a=JSON.parse(localStorage.getItem('zoo.fav'));return Array.isArray(a)?a.slice():[]}catch(e){return[]}
+})();
+function isFav(name){return FAVS.indexOf(name)>=0}
+function getFavs(){return FAVS.slice()}
+function setFavs(arr){
+  FAVS=arr.slice();
+  try{localStorage.setItem('zoo.fav',JSON.stringify(FAVS))}catch(e){}
+  renderFavs();
+}
+function toast(msg){
+  const t=$('toast');if(!t)return;
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1600);
+}
+function toggleFav(e){
+  if(e){e.preventDefault();e.stopPropagation()}
+  if(!cur){toast('Abra um cálculo primeiro');return}
+  const name=cur.n;
+  const wasOn=isFav(name);
+  if(wasOn) setFavs(FAVS.filter(n=>n!==name));
+  else setFavs(FAVS.concat([name]));
+  updateFavBtn();
+  toast(wasOn?'Removido dos favoritos':'Adicionado aos favoritos ⭐');
+}
+function updateFavBtn(){
+  const btn=$('fav-btn');
+  if(!btn)return;
+  if(!cur){btn.textContent='☆';btn.classList.add('off');btn.classList.remove('on');return}
+  const on=isFav(cur.n);
+  btn.textContent=on?'★':'☆';
+  btn.classList.toggle('off',!on);
+  btn.classList.toggle('on',on);
+  btn.setAttribute('aria-label',on?'Remover dos favoritos':'Adicionar aos favoritos');
+}
+function renderFavs(){
+  const sec=$('fav-section'), list=$('fav-list');
+  if(!sec||!list)return;
+  const f=getFavs();
+  if(!f.length){
+    sec.classList.add('hidden');
+    sec.style.display='none';
+    list.innerHTML='';
+    return;
+  }
+  sec.classList.remove('hidden');
+  sec.style.display='block';
+  const items=f.map(name=>{
+    const i=C.findIndex(c=>c.n===name);
+    if(i<0)return'';
+    const c=C[i];
+    return`<div class="calc-item" data-idx="${i}">
+      <div class="num">⭐</div>
+      <div class="info"><b>${esc(c.n)}</b><span>${esc(c.d||c.g)}</span></div>
+      <div class="arrow">›</div>
+    </div>`;
+  }).filter(Boolean).join('');
+  list.innerHTML=items||'';
+  if(!items){sec.classList.add('hidden');sec.style.display='none'}
+}
+
+function openCalc(idx){
+  cur=C[idx];
+  $('calc-title').textContent=cur.n;
+  let did='<b>O que é:</b> '+esc(cur.d||'Cálculo zootécnico/financeiro.');
+  if(cur.i)did+='<div class="interp"><b>Como interpretar:</b> '+esc(cur.i)+'</div>';
+  $('calc-didactic').innerHTML=did;
+  $('f').innerHTML=cur.f.map(campo).join('');
+  $('x').innerHTML='<b>Fórmula:</b> '+cur.x+'<br><b>Fonte:</b> '+cur.r.map(src).join('; ')+'.';
+  $('lg').innerHTML='';
+  $('o').innerHTML='';
+  $('copy-row').style.display='none';
+  updateFavBtn();
+  load();
+  showView('calc');
+}
+
+function campo([k,l,u,t],i){
+  const p=(EX[cur.n]||[])[i],ph=p===undefined?'':' placeholder="ex.: '+esc(String(p).replace(/(\d)\.(\d)/g,'$1,$2'))+'"';
+  const el=t==='a'?'<textarea data-k="'+k+'" rows="4"'+ph+'></textarea>'
+    :lista(t)?'<select data-k="'+k+'">'+t.slice(1).split('|').map((o,j)=>'<option value="'+j+'">'+o+'</option>').join('')+'</select>'
+    :'<input data-k="'+k+'" autocomplete="off"'+(t?'':' inputmode="'+(INT.includes(u)?'numeric':'decimal')+'"')+ph+'>';
+  return'<label'+(t?' style="grid-column:1/-1"':'')+'>'+l+(u?' ('+u+')':'')+el+'</label>';
+}
+
+let lastCopyText='';
+function run(save){
+  const v={},o=$('o');let bad=0;
+  document.querySelectorAll('[data-k]').forEach(i=>{
+    const f=cur.f.find(f=>f[0]===i.dataset.k);
+    if(marca(i))bad++;
+    v[f[0]]=texto(f[3])?i.value:N(i.value);
+  });
+  LEG=[];$('lg').innerHTML='';
+  $('copy-row').style.display='none';
+  if(bad){o.innerHTML='<span class="msg">Corrija '+(bad>1?'os '+bad+' campos marcados':'o campo marcado')+' para calcular.</span>';return}
+  const r=cur.c(v);
+  if(typeof r==='string'){o.innerHTML='<span class="msg">'+r+'</span>';return}
+  o.innerHTML=r.map(row).join('')+(r.some(a=>!isFinite(a[1]))?'<span class="mu">“—” indica valor que não pôde ser calculated.</span>':'');
+  if(LEG.length)$('lg').innerHTML='<b>Farol:</b> verde = bom · amarelo = atenção · vermelho = crítico.<br>'+LEG.map(esc).join('<br>');
+  if(save){log(v,r);o.insertAdjacentHTML('beforeend','<span class="mu">Salvo no histórico.</span>')}
+  
+  const entradas=cur.f.map(f=>f[1]+': '+rotulo(f,v)).join('\n');
+  const saidas=r.map(a=>a[0]+': '+(isFinite(a[1])?F(a[1],a[3]===undefined?2:a[3])+(a[2]?' '+a[2]:''):'—')).join('\n');
+  lastCopyText=cur.n+'\n\nEntradas:\n'+entradas+'\n\nResultados:\n'+saidas+(cur.i?'\n\nComo interpretar:\n'+cur.i:'');
+  $('copy-row').style.display='flex';
+  const cb=$('copy-btn');if(cb){cb.textContent='📋 Copiar resultado';cb.classList.remove('copied')}
+  o.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
+/* ===== Eventos ===== */
+$('cat-grid').innerHTML=CATS.map(c=>`
+  <div class="cat-card" data-cat="${c.id}">
+    <span class="ico">${c.ico}</span>
+    <p class="name">${c.name}</p>
+    <p class="desc">${c.desc}</p>
+  </div>`).join('');
+
+/* ===== Busca ===== */
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function doSearch(){
+  const q=norm($('search').value.trim());
+  const res=$('search-results'), grid=$('cat-grid'), bib=$('biblio'), fav=$('fav-section');
+  if(!q){
+    res.classList.remove('visible');res.innerHTML='';
+    grid.classList.remove('hidden');
+    if(bib)bib.style.display='';
+    renderFavs();
+    return;
+  }
+  grid.classList.add('hidden');
+  if(fav)fav.classList.add('hidden');
+  if(bib)bib.style.display='none';
+  const hits=C.map((c,i)=>({c,i})).filter(({c})=>{
+    const t=norm(c.n+' '+c.d+' '+c.g+' '+(c.x||''));
+    return q.split(/\s+/).every(w=>t.includes(w));
+  });
+  res.classList.add('visible');
+  if(!hits.length){
+    res.innerHTML='<div class="empty">Nenhum cálculo encontrado para “'+esc($('search').value.trim())+'”.</div>';
+    return;
+  }
+  res.innerHTML=hits.map(({c,i})=>`
+    <div class="calc-item" data-idx="${i}">
+      <div class="num">↗</div>
+      <div class="info"><b>${esc(c.n)}</b><span>${esc(c.d||c.g)}</span></div>
+      <div class="arrow">›</div>
+    </div>`).join('');
+}
+$('search').oninput=doSearch;
+$('search').onkeydown=e=>{if(e.key==='Escape'){$('search').value='';doSearch()}};
+$('search-results').onclick=e=>{
+  const item=e.target.closest('[data-idx]');
+  if(item){openCalc(+item.dataset.idx);$('search').value='';doSearch()}
+};
+
+$('cat-grid').onclick=e=>{const card=e.target.closest('[data-cat]');if(card)openCat(card.dataset.cat)};
+$('calc-list').onclick=e=>{const item=e.target.closest('[data-idx]');if(item)openCalc(+item.dataset.idx)};
+$('fav-list').onclick=e=>{const item=e.target.closest('[data-idx]');if(item)openCalc(+item.dataset.idx)};
+$('back-home').onclick=()=>{$('search').value='';doSearch();showView('home')};
+$('back-list').onclick=()=>currentCat?openCat(currentCat.id):showView('home');
+
+const favBtn=$('fav-btn');
+if(favBtn){
+  favBtn.addEventListener('click',toggleFav);
+  favBtn.addEventListener('touchend',function(e){e.preventDefault();toggleFav(e)},{passive:false});
+}
+$('copy-btn').onclick=async()=>{
+  if(!lastCopyText)return;
+  const btn=$('copy-btn');
+  try{
+    await navigator.clipboard.writeText(lastCopyText);
+    btn.textContent='✓ Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 Copiar resultado';btn.classList.remove('copied')},2000);
+  }catch(e){
+    const ta=document.createElement('textarea');ta.value=lastCopyText;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');btn.textContent='✓ Copiado!';btn.classList.add('copied')}catch(e2){btn.textContent='Não foi possível copiar'}
+    document.body.removeChild(ta);
+    setTimeout(()=>{btn.textContent='📋 Copiar resultado';btn.classList.remove('copied')},2000);
+  }
+};
+
+$('go').onclick=()=>run(true);
+$('f').oninput=savein;
+$('f').addEventListener('focusout',e=>{const i=e.target.closest('[data-k]');if(i)marca(i)});
+$('f').onkeydown=e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT')run(true)};
+$('ex').onclick=()=>{
+  const e=EX[cur.n]||[];
+  document.querySelectorAll('[data-k]').forEach((el,i)=>{if(e[i]!==undefined)el.value=e[i];marca(el)});
+  savein();$('o').innerHTML='';$('copy-row').style.display='none';
+};
+$('hq').oninput=drawH;
+$('ht').onclick=e=>{const b=e.target.closest('[data-r]');if(b)recalc(+b.dataset.r)};
+$('csv').onclick=()=>saveFile('historico-zootecnico.csv',csv());
+$('pc').onclick=()=>imprimir('pc');
+$('prn').onclick=()=>imprimir('ph');
+
+let ask=0;
+$('clr').onclick=e=>{
+  if(!ask){ask=1;e.target.textContent='Toque de novo para apagar';setTimeout(()=>{ask=0;e.target.textContent='Limpar histórico'},4000)}
+  else{ask=0;e.target.textContent='Limpar histórico';LS.set('zoo.h',[]);drawH()}
+};
+
+function toggleTheme(){
+  const raiz=document.documentElement;
+  const t=(raiz.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'))==='dark'?'light':'dark';
+  raiz.dataset.theme=t;LS.set('zoo.th',t);
+}
+$('th').onclick=toggleTheme;
+$('th2').onclick=toggleTheme;
+if(LS.get('zoo.th',''))document.documentElement.dataset.theme=LS.get('zoo.th','');
+
+$('bottom-nav').onclick=e=>{
+  const b=e.target.closest('button');
+  if(!b)return;
+  if(b.dataset.view==='home'){$('search').value='';doSearch();showView('home')}
+  if(b.dataset.view==='hist')showView('hist');
+};
+
+$('b').innerHTML=Object.values(R).sort((a,b)=>a[0]-b[0]).map(r=>'<li>'+r[1]+'</li>').join('');
+
+/* ===== PWA / OFFLINE ===== */
+// O Service Worker precisa ser um arquivo da mesma origem; Blob URLs não são
+// aceitas como script de Service Worker em navegadores modernos.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('Não foi possível registrar o modo offline:', err);
+    });
+  });
+}
+
+/* ===== Prompt de Instalação (Instalar App) ===== */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = $('install-banner');
+  if(banner) banner.style.display = 'flex';
+});
+
+const installBtn = $('install-btn');
+if(installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      const banner = $('install-banner');
+      if(banner) banner.style.display = 'none';
+    }
+    deferredPrompt = null;
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  const banner = $('install-banner');
+  if(banner) banner.style.display = 'none';
+  toast('Aplicativo instalado com sucesso!');
+});
+
+
+/* ===== Inicialização ===== */
+drawH();
+renderFavs();
+showView('home');
+</script>
+<script>
+/* ZooGestão: validação de licença por assinatura digital.
+   A chave privada de geração NÃO faz parte deste aplicativo público. */
+(()=>{
+  const $id=id=>document.getElementById(id);
+  const PUBLIC_KEY_B64="MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnm2qdxM3x1hEC69sUuBdz6+tnW76ZjVB4h4MFs0ytKaKpw6xq05r4IuNyi0OOCtd46rNxjeJAVNgt3zFs48Zn1xzuSMrvXs0Soai6l97oXEiTdp/4Q3yQsk1FGlyfHoQ7LnCZLnthiNiUYi6qexbMlgQXmW8I5iJfX9wuTIKFv6T2uTEXzE2pl437vnzRH69ntefLWhA084oOLZ9q5igqpO02ie/8tWNaH9qcNRml6DnxNNLgl8WKcbarltVTGgTv/Ls5998ltm8PLbB2zJeUEdgVReijmX/KKe0t2qdr9TtP6rOQ/5dvc2GhUERhY0B2B+a4XiFD8UZQxVg8AplMwIDAQAB";
+  function cleanId(value){return String(value||'').trim().toUpperCase().replace(/O/g,'0').replace(/\s+/g,'');}
+  function bytesFromB64(b64){const bin=atob(b64);const out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
+  function b64urlToBytes(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return bytesFromB64(s);}
+  function getDeviceId(){
+    let id='';try{id=localStorage.getItem('zoo_device_id')||'';}catch(e){}
+    if(!/^Z00-[0-9A-F]{4}$/.test(id)){
+      const rand=new Uint8Array(2);if(window.crypto&&crypto.getRandomValues)crypto.getRandomValues(rand);else {rand[0]=Math.floor(Math.random()*256);rand[1]=Math.floor(Math.random()*256);}
+      id='Z00-'+Array.from(rand,x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();
+      try{localStorage.setItem('zoo_device_id',id);}catch(e){}
+    }
+    return id;
+  }
+  async function verifyLicense(code,expectedId){
+    const parts=String(code||'').trim().split('.');if(parts.length!==2)return false;
+    const signedId=cleanId(parts[0]);if(signedId!==cleanId(expectedId))return false;
+    try{
+      const key=await crypto.subtle.importKey('spki',bytesFromB64(PUBLIC_KEY_B64),{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
+      return await crypto.subtle.verify('RSASSA-PKCS1-v1_5',key,b64urlToBytes(parts[1]),new TextEncoder().encode(signedId));
+    }catch(e){return false;}
+  }
+  const deviceId=getDeviceId();
+  function unlock(){const screen=$id('license-screen');if(screen)screen.hidden=true;document.body.classList.remove('license-locked');const main=$id('app-main');if(main)main.style.visibility='visible';}
+  $id('lic-device-id').textContent=deviceId;
+  (async()=>{try{const saved=localStorage.getItem('zoo_license_key')||'';if(await verifyLicense(saved,deviceId))unlock();}catch(e){}})();
+  $id('lic-activate').addEventListener('click',async()=>{
+    const code=String($id('lic-code').value||'').trim();
+    $id('lic-error').style.color='#b42318';$id('lic-error').textContent='Verificando licença…';
+    if(await verifyLicense(code,deviceId)){
+      try{localStorage.setItem('zoo_license_key',code);}catch(e){}
+      $id('lic-error').style.color='#267348';$id('lic-error').textContent='Acesso liberado neste dispositivo.';unlock();
+    }else{$id('lic-error').style.color='#b42318';$id('lic-error').textContent='Código inválido para este aparelho. Confira o ID e tente novamente.';}
+  });
+  $id('lic-code').addEventListener('keydown',e=>{if(e.key==='Enter')$id('lic-activate').click();});
+})();
+</script>
+</body>
+</html>
